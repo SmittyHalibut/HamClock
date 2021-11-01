@@ -1,0 +1,12 @@
+These classes allow the ESP8266 version of HamClock to be built on Raspberry Pi or other UNIX systems to
+display on the desktop as an X11 app or use the raw linux frame buffer. The latter uses /dev/fb0 for display
+and the mouse device /dev/input/mice in place of the touch panel.
+
+The approach proved to be sound as there are _very_ few changes needed to the ESP HamClock code. But note
+this is not intended to be a general purpose porting layer, I only implemented the methods I happen to use
+in the HamClock. The idea could be expanded further if the need arises.
+
+The files from Adafruit and Sparkfun were edited for cosmetic purposes only, mostly to get clean
+compiles on all platforms. No changes were made to functionality.
+
+73, Elwood, WB0OEW

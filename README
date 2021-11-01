@@ -1,0 +1,108 @@
+Project web site: http://www.clearskyinstitute.com/ham/HamClock
+
+
+*********************************************************************************************
+
+ESPHamClock parts list and wiring.
+
+EP = https://www.adafruit.com/products/2821     ESP HUZZAH feather
+RA = https://www.adafruit.com/products/1590     RA8875 Display controller
+BM = https://www.adafruit.com/products/2652     BME280 Temperature, Humidity Pressure sensor
+PC = https://www.adafruit.com/product/161       CdS Photocell
+
+other hardware:
+
+https://www.adafruit.com/products/2354          7" Color TFT with touch screen
+https://www.adafruit.com/products/2098          FPC cable extension
+
+
+Wiring summary:
+
+EP_SCK    RA_SCK
+EP_MO     RA_MOSI
+EP_MI     RA_MISO
+EP_2      RA_CS
+EP_15     KX3 RX
+EP_16     RA_RST
+EP_USB    RA_VIN
+
+Optional sensor pack:
+
+EP_SCL    BM_SCK
+EP_SDA    BM_SDI
+EP_3V     BM_VIN
+
+Optional photocell:
+
+EP_ADC    PC_1, 330k
+EP_GND    PC_2
+EP_3V     330k
+
+Connect all GNDs together
+
+
+
+
+*********************************************************************************************
+
+To use a 9" ER-TFTM090-2 from buydisplay.com:
+
+Purchase options:
+[ ] Pin header 4 wire SPI
+[ ] VDD 5 V
+[ ] Touch panel 9" resistive
+[ ] Micro SD - none
+[ ] Font chip - none
+
+EP_SCK       8 =  SCLK
+EP_MO        7 =  SDI
+EP_MI        6 =  SDO
+EP_2         5 =  CS
+EP_16        11 = Reset
+EP_USB       3, 4, 37, 38 = 5V
+EP_GND       1, 2, 13, 31, 39, 40 = Ground
+
+
+Touch display requires nearly perfect power supply.
+
+
+
+*********************************************************************************************
+
+To use Adafruit ESP Huzzah breakout: https://www.adafruit.com/products/2471
+
+Breakout      9" TFT                7" TFT
+
+16            11 = Reset            RA_RST
+2 = Blu LED   5  = CS               RA_CS
+12 = MI       6  = SDO              RA_MISO
+13 = MO       7  = SDI              RA_MOSI
+14 = SCK      8  = SCLK             RA_SCK
+15            14 = Backlight        N/C
+Vbat          3, 4, 37, 38          RA_VIN       5 V supply
+GND           1, 2, 13, 31, 39, 40  RA_GND       supply ground
+
+Sensor:
+
+5             BM_SCK
+4             BM_SDI
+3V            BM_VIN
+
+Photocell:
+
+A0            PC_1, 330k
+GND           PC_2
+Vbat          330k
+
+
+Note: To program the Huzzah breakout:
+  1. Attach the 6 pin programming cable
+  2. Enable programming mode: Hold GPIO0, click Reset, release GPIO0 then red LED should be on dim
+  3. Proceed with programming (blue LED flickers while loading)
+  4. After programming is complete, click Reset
+  5. Unplug the programming cable if not needed for Serial
+
+
+*********************************************************************************************
+
+To build a desktop version for linux or macOS, type: make help and pick a good X11 size.
