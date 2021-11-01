@@ -385,6 +385,10 @@ enum {
     DXSRSS_N,
 };
 
+// Antenna heading lines
+extern int16_t antenna_heading;         // Heading the antenna is pointing, in degrees.
+extern int16_t antenna_width;           // Beam width of the antenna, in degrees.
+
 // show NCDXF beacons or up to one of several brightness controls in brightness_b
 extern uint8_t brb_mode;
 typedef enum {
@@ -508,6 +512,7 @@ extern bool overRSS (const SBox &b);
 extern void newDE (LatLong &ll, const char *grid);
 extern void newDX (LatLong &ll, const char *grid, const char *override_prefix);
 extern void drawDXPath(void);
+extern void drawHeadingPath();
 extern void getTextBounds (const char str[], uint16_t *wp, uint16_t *hp);
 extern uint16_t getTextWidth (const char str[]);
 extern void normalizeLL (LatLong &ll);
@@ -931,6 +936,8 @@ extern uint16_t getSatPathColor(void);
 extern uint16_t getSatFootColor(void);
 extern uint16_t getShortPathColor(void);
 extern uint16_t getLongPathColor(void);
+extern uint16_t getAntennaHeadingColor(void);
+extern uint16_t getAntennaBackColor(void);
 extern uint8_t getBrMax(void);
 extern uint8_t getBrMin(void);
 extern bool getX11FullScreen(void);
@@ -1206,6 +1213,8 @@ typedef enum {
     NV_PANE3ROTSET,             // PlotChoice bitmask of pane 3 rotation choices
     NV_DOY_ON,                  // whether showing day of year instead of month day
     NV_ALARMCLOCK,              // DE alarm time 60*hr + min, + 60*24 if off
+    NV_ANTENNAHEADINGCOLOR,     // Antenna heading color
+    NV_ANTENNABACKCOLOR,        // Antenna backside color
 
     NV_N
 } NV_Name;

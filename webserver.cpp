@@ -1128,6 +1128,27 @@ static bool getWiFiTime (WiFiClient *clientp, char *unused)
     return (true);
 }
 
+static bool setWiFiAntennaHeading (WiFiClient *clientp, char line[]) {
+    // find each keyword
+    int h, w;
+    if (sscanf(line, "heading=%d&width=%d", &h, &w) != 2) {
+        // User didn't send us valid data.
+        strcpy (line, garbcmd);
+        return (false);
+    }
+    antenna_heading = int16_t(h%360);
+    antenna_width = int16_t(w%360);
+
+    // ack
+    if (clientp) {
+        startPlainText (*clientp);
+        clientp->print (_FX("ok\n"));
+    }
+
+    return(true);
+}
+
+
 /* remote command to set call sign to some message and set fg and bg colors.
  * all are optional in any order; restore defaults if no args at all.
  */
@@ -2163,6 +2184,7 @@ static const CmdTble command_table[] PROGMEM = {
     { "get_sys.txt ",       getWiFiSys,            "get system stats" },
     { "get_time.txt ",      getWiFiTime,           "get current time" },
     { "set_alarm?",         setWiFiAlarm,          "state=off|armed&time=HR:MN" },
+    { "set_antennaheading?",setWiFiAntennaHeading, "heading=degrees,width=degrees" },
     { "set_displayOnOff?",  setWiFiDisplayOnOff,   "on|off" },
     { "set_displayTimes?",  setWiFiDisplayTimes,   "on=HR:MN&off=HR:MN&day=DOW&idle=mins" },
     { "set_mapview?",       setWiFiMapView,        "Style=S&Grid=G&Projection=P&RSS=on|off&Night=on|off" },

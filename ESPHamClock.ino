@@ -107,6 +107,11 @@ static uint32_t gpath_time;             // millis() when great path was drawn
 #define GPATH_COLOR     RA8875_WHITE    // path color
 static SBox prefix_b;                   // where to show DX prefix text
 
+// manage antenna heading circle paths
+static SCoord *hpath1, *hpath2;
+static uint16_t n_hpath1, n_hpath2;
+int16_t antenna_heading, antenna_width;  // In degrees (positive or negative); will be converted to radians as needed.
+
 // manage using DX cluster prefix or one from nearestPrefix()
 static bool dx_prefix_use_override;     // whether to use dx_override_prefixp[] or nearestPrefix()
 static char dx_override_prefix[MAX_PREF_LEN];
@@ -523,6 +528,10 @@ void setup()
     // check for saved satellite
     dx_info_for_sat = initSatSelection();
 
+    // Antenna heading info
+    antenna_heading = 45;
+    antenna_width = 60;
+
     // perform inital screen layout
     initScreen();
 
@@ -900,6 +909,7 @@ void newDX (LatLong &ll, const char *grid, const char *ovprefix)
     // draw in new location and update info
     drawDXPath ();
     gpath_time = millis();
+    drawHeadingPath();
     drawDXInfo ();
     drawAllSymbols(false);
 
@@ -1106,6 +1116,67 @@ void propDEDXPath (bool long_path, LatLong &ll, float *distp, float *bearp)
     }
 }
 
+/* draw Great Circle at heading from DE.
+ * Save screen coordinates in *path.  Buffer must be allocated at least MAX_GPATH long.
+ * returns: actual number of points drawn.
+ */
+uint16_t drawGreatCirclePath(float dist, float bear, SCoord *path, uint16_t shortColor, uint16_t longColor) {
+    // walk great circle path from DE through DX, storing each point
+    float ca, B;
+    SCoord s;
+    uint16_t num_points = 0;
+
+    // start with max nnumber of points, then reduce
+    path = (SCoord *) realloc (path, MAX_GPATH * sizeof(SCoord));
+    if (!path) {
+        Serial.println (F("Failed to malloc path"));
+        reboot();
+    }
+
+    for (float b = 0; b < 2*M_PIF; b += 2*M_PIF/MAX_GPATH) {
+        solveSphere (bear, b, sdelat, cdelat, &ca, &B);
+        ll2s (asinf(ca), fmodf(de_ll.lng+B+5*M_PIF,2*M_PIF)-M_PIF, s, 1);
+        if (overMap(s) && (num_points == 0 || memcmp (&s, &path[num_points-1], sizeof(SCoord)))) {
+            uint16_t c = b < dist ? shortColor : longColor;
+            path[num_points++] = s;
+
+            // beware drawing the fat pixel off the edge of earth because eraseDXPath won't erase it
+            LatLong ll;
+            tft.drawPixel (s.x, s.y, c);
+            if (s2ll(s.x+1, s.y, ll))
+                tft.drawPixel (s.x+1, s.y, c);
+            if (s2ll(s.x+1, s.y+1, ll))
+                tft.drawPixel (s.x+1, s.y+1, c);
+            if (s2ll(s.x, s.y+1, ll))
+                tft.drawPixel (s.x, s.y+1, c);
+        }
+    }
+    // reduce to actual number of points used
+    // Serial.printf (_FX("n_gpath %u -> %u\n"), MAX_GPATH, n_gpath);
+    path = (SCoord *) realloc (path, num_points * sizeof(SCoord));
+    if (!path) {
+        Serial.println (F("Failed to realloc gpath"));
+        reboot();
+    }
+
+    return num_points;
+}
+
+/*
+ * Draw two great circles, at antenna heading + width/2, and heading - width/2
+ * heading and width are in radians.
+ * Saves screen coordinates in hpath1[] and hpath2[] respectively.
+ */
+void drawHeadingPath() {
+    resetWatchdog();
+
+    float h = fmodf(float(antenna_heading) * M_PIF*2.0 / 360, 2*M_PIF);
+    float w = fmodf(float(antenna_width) * M_PIF*2.0 / 360, 2*M_PIF);
+
+    n_hpath1 = drawGreatCirclePath(M_PIF, h + w/2.0, hpath1, getAntennaHeadingColor(), getAntennaBackColor());
+    n_hpath2 = drawGreatCirclePath(M_PIF, h - w/2.0, hpath2, getAntennaHeadingColor(), getAntennaBackColor());
+}
+
 /* draw great circle through DE and DX.
  * save screen coords in gpath[]
  */
@@ -1117,43 +1188,7 @@ void drawDXPath ()
     float dist, bear;
     propDEDXPath (false, dx_ll, &dist, &bear);
 
-    // start with max nnumber of points, then reduce
-    gpath = (SCoord *) realloc (gpath, MAX_GPATH * sizeof(SCoord));
-    if (!gpath) {
-        Serial.println (F("Failed to malloc gpath"));
-        reboot();
-    }
-
-    // walk great circle path from DE through DX, storing each point
-    float ca, B;
-    SCoord s;
-    n_gpath = 0;
-    for (float b = 0; b < 2*M_PIF; b += 2*M_PIF/MAX_GPATH) {
-        solveSphere (bear, b, sdelat, cdelat, &ca, &B);
-        ll2s (asinf(ca), fmodf(de_ll.lng+B+5*M_PIF,2*M_PIF)-M_PIF, s, 1);
-        if (overMap(s) && (n_gpath == 0 || memcmp (&s, &gpath[n_gpath-1], sizeof(SCoord)))) {
-            uint16_t c = b < dist ? getShortPathColor() : getLongPathColor();
-            gpath[n_gpath++] = s;
-
-            // beware drawing the fat pixel off the edge of earth because eraseDXPath won't erase it
-            LatLong ll;
-            tft.drawPixel (s.x, s.y, c);
-            if (s2ll(s.x+1, s.y, ll))
-                tft.drawPixel (s.x, s.y, c);
-            if (s2ll(s.x+1, s.y+1, ll))
-                tft.drawPixel (s.x, s.y, c);
-            if (s2ll(s.x, s.y+1, ll))
-                tft.drawPixel (s.x, s.y, c);
-        }
-    }
-
-    // reduce to actual number of points used
-    // Serial.printf (_FX("n_gpath %u -> %u\n"), MAX_GPATH, n_gpath);
-    gpath = (SCoord *) realloc (gpath, n_gpath * sizeof(SCoord));
-    if (!gpath) {
-        Serial.println (F("Failed to realloc gpath"));
-        reboot();
-    }
+    n_gpath = drawGreatCirclePath(dist, bear, gpath, getShortPathColor(), getLongPathColor());
 
     // printFreeHeap (F("drawDXPath"));
 }

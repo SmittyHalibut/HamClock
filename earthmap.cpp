@@ -935,6 +935,7 @@ void drawMoreEarth()
         moremap_s.y = map_b.y;
 
         drawMapGrid();
+        drawHeadingPath();
         drawSatPathAndFoot();
         drawSatNameOnRow (0);
         drawAllSymbols(false);

@@ -303,6 +303,8 @@ typedef enum {
     SHORTPATH_CSPR,
     LONGPATH_CSPR,
     GRID_CSPR,
+    ANTENNAHEADING_CSPR,
+    ANTENNABACK_CSPR,
     N_CSPR
 } CSIds;
 
@@ -319,6 +321,10 @@ static ColSelPrompt colsel_pr[N_CSPR] = {
                 false, RA8875_WHITE, NV_LONGPATHCOLOR, "Long prop path:"},
     {{30, R2Y(4), 140, PR_H}, {2, R2Y(4)+4, CSEL_TBSZ, CSEL_TBSZ}, {CSEL_DX, R2Y(4)+PR_H/2, CSEL_DW, CSEL_DH},
                 false, RA8875_BLACK, NV_GRIDCOLOR, "Map Grid:"},
+    {{30, R2Y(5), 140, PR_H}, {2, R2Y(5)+4, CSEL_TBSZ, CSEL_TBSZ}, {CSEL_DX, R2Y(5)+PR_H/2, CSEL_DW, CSEL_DH},
+                false, RA8875_YELLOW, NV_ANTENNAHEADINGCOLOR, "Antenna heading:"},
+    {{30, R2Y(6), 140, PR_H}, {2, R2Y(6)+4, CSEL_TBSZ, CSEL_TBSZ}, {CSEL_DX, R2Y(6)+PR_H/2, CSEL_DW, CSEL_DH},
+                false, RGB565(128, 128, 128), NV_ANTENNABACKCOLOR, "Antenna backside:"},
 };
 
 // color selector wheel
@@ -2571,6 +2577,20 @@ uint16_t getLongPathColor()
 uint16_t getGridColor()
 {
     return (colsel_pr[GRID_CSPR].c);
+}
+
+/* return antenna heading color
+ */
+uint16_t getAntennaHeadingColor()
+{
+    return (colsel_pr[ANTENNAHEADING_CSPR].c);
+}
+
+/* return antenna backside color
+ */
+uint16_t getAntennaBackColor()
+{
+    return (colsel_pr[ANTENNABACK_CSPR].c);
 }
 
 /* whether to engage full screen.
