@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=HamClock
+Exec=/bin/sh -c 'sleep 2; /usr/local/bin/hamclock'
+Icon=/home/pi/.hamclock/hamclock.png
+Terminal=false
+Type=Application
